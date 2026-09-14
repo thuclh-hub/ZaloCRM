@@ -111,7 +111,10 @@ services:
     # profiles: redis  ← REMOVED M1 2026-06-01: Redis là dependency cứng của BullMQ
 
   minio:
-    image: minio/minio:latest
+    # Quay.io — Docker Hub's `minio/minio` is no longer anonymously pullable
+    # (returns 403 pull access denied as of 2026). Quay.io is the canonical
+    # registry MinIO publishes to.
+    image: quay.io/minio/minio:latest
     container_name: zalo-crm-minio
     restart: unless-stopped
     command: server /data --console-address ":9001"
@@ -142,7 +145,10 @@ services:
       retries: 3
 
   minio-init:
-    image: minio/mc:latest
+    # Quay.io — Docker Hub's `minio/mc` is no longer anonymously pullable
+    # (returns 403 pull access denied as of 2026). Quay.io is the canonical
+    # registry MinIO publishes to.
+    image: quay.io/minio/mc:latest
     container_name: zalo-crm-minio-init
     depends_on:
       minio:
@@ -192,7 +198,11 @@ services:
   # đang tải DB virus (~vài phút sau khi start) hoặc tắt. App chỉ THẬT SỰ quét khi
   # MEDIA_AV_ENABLED=1. Chưa bật → scanBuffer trả 'skipped' ngay, 0 kết nối.
   clamav:
+    # ClamAV only ships x86_64 manifests — force amd64 on Apple Silicon
+    # (Docker Desktop will Rosetta/QEMU-emulate it). Ignored on Linux servers
+    # where the host arch already matches.
     image: clamav/clamav:1.4
+    platform: linux/amd64
     container_name: zalo-crm-clamav
     restart: unless-stopped
     environment:
